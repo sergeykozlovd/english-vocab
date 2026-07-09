@@ -626,6 +626,7 @@ domain
 don
 don't
 done
+dont
 door
 doors
 dot
