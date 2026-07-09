@@ -1,475 +1,628 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>!Анализатор транскриптов</title>
-    <style>
-        /* Базовые стили, совместимые со старыми браузерами */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 15px;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        h1, h2 {
-            color: #2c3e50;
-            margin-top: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        textarea {
-            width: 100%;
-            height: 150px;
-            box-sizing: border-box;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 14px;
-            resize: vertical;
-        }
-        .control-panel {
-            margin: 20px 0;
-            padding: 15px;
-            background: #eef2f7;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        button:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-        .slider-container {
-            margin-top: 15px;
-        }
-        .slider-container label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        input[type="range"] {
-            width: 100%;
-            margin: 10px 0;
-        }
-        .status {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 5px;
-        }
-        /* Стили таблицы результатов */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            text-align: left;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .btn-know {
-            background-color: #2ecc71;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-        .btn-know:hover {
-            background-color: #27ae60;
-        }
-        .btn-danger {
-            background-color: #e74c3c;
-        }
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocabulary Analyzer</title>
+  <style>
+    /* Базовые стили, совместимые со старыми браузерами */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      margin: 0;
+      padding: 10px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-top: 5px;
+    }
+    .section {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .section:last-child {
+      border-bottom: none;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    input[type="text"], input[type="password"], textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    textarea {
+      height: 120px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    .slider-container {
+      margin: 15px 0;
+      text-align: center;
+    }
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+    .time-label {
+      font-weight: bold;
+      font-size: 16px;
+      color: #16a085;
+    }
+    .word-list {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .word-list th, .word-list td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .word-list th {
+      background-color: #f2f2f2;
+    }
+    .btn-action {
+      padding: 4px 8px;
+      font-size: 12px;
+      background-color: #2ecc71;
+      border-radius: 3px;
+      width: auto;
+    }
+    .btn-action.marked {
+      background-color: #e74c3c;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
+    .status.info { display: block; background-color: #d9edf7; color: #31708f; }
+    .status.success { display: block; background-color: #dff0d8; color: #3c763d; }
+    .status.error { display: block; background-color: #f2dede; color: #a94442; }
+    
+    .settings-toggle {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+    .settings-toggle a {
+      color: #3498db;
+      text-decoration: none;
+      font-size: 12px;
+    }
+    #settings-block {
+      display: none;
+      background: #fdfefe;
+      border: 1px dashed #3498db;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Анализ английских слов в видео</h1>
-    
-    <p>Вставьте транскрипт с таймкодами (например, скопированный с YouTube) в поле ниже:</p>
-    <textarea id="transcriptInput" placeholder="Вставьте текст сюда...&#10;Например:&#10;0:00&#10;hi everyone&#10;0:08&#10;large language models..."></textarea>
-    
-    <div class="control-panel">
-        <button id="btnProcess" disabled>Загрузка базы слов...</button>
-        <span id="dbStatus" class="status">Загрузка файла исключений...</span>
-        
-        <div id="sliderArea" class="slider-container hidden">
-            <label id="sliderLabel">Анализировать видео до: 0:00</label>
-            <input type="range" id="timeSlider" min="0" max="100" value="0">
-        </div>
-    </div>
+  <h1>Vocabulary Analyzer</h1>
 
-    <div id="resultsArea" class="hidden">
-        <h2>Незнакомые слова (по частоте):</h2>
-        <div style="margin-bottom: 10px;">
-            <button class="btn-danger" onclick="clearCustomKnown()">Сбросить выученные слова</button>
-            <span id="customWordsCount" class="status"></span>
-        </div>
-        <table id="resultsTable">
-            <thead>
-                <tr>
-                    <th>Слово</th>
-                    <th>Встретилось раз</th>
-                    <th>Действие</th>
-                </tr>
-            </thead>
-            <tbody id="resultsBody">
-                <!-- Сюда JS добавит строки -->
-            </tbody>
-        </table>
+  <!-- Блок настроек GitHub -->
+  <div class="settings-toggle">
+    <a href="#" id="toggle-settings-btn" onclick="toggleSettings(); return false;">Настройки GitHub ⚙️</a>
+  </div>
+  
+  <div id="settings-block">
+    <label>GitHub Personal Access Token:</label>
+    <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
+    
+    <label>Имя пользователя GitHub:</label>
+    <input type="text" id="gh-owner" placeholder="username">
+    
+    <label>Имя репозитория:</label>
+    <input type="text" id="gh-repo" placeholder="my-vocab-repo">
+    
+    <label>Путь к файлу в репозитории:</label>
+    <input type="text" id="gh-path" value="exclusions.txt" placeholder="exclusions.txt">
+    
+    <button onclick="saveSettings()">Сохранить настройки</button>
+  </div>
+
+  <!-- Статус -->
+  <div id="status-box" class="status"></div>
+
+  <!-- Ввод текста -->
+  <div class="section">
+    <label>Вставьте транскрипт видео:</label>
+    <textarea id="transcript-input" placeholder="Вставьте сюда текст с таймкодами (например: 0:00 Hello...)"></textarea>
+    <button id="analyze-btn" onclick="onAnalyze()" disabled>Анализировать</button>
+  </div>
+
+  <!-- Ползунок времени -->
+  <div class="section" id="interactive-panel" style="display:none;">
+    <div class="slider-container">
+      <span class="time-label" id="current-time-label">0:00</span>
+      <input type="range" id="time-slider" min="0" value="0" oninput="onSliderChange(this.value)" onchange="onSliderChange(this.value)">
     </div>
+  </div>
+
+  <!-- Результаты анализа -->
+  <div class="section" id="results-panel" style="display:none;">
+    <div style="margin-bottom: 15px;">
+      <button id="save-to-git-btn" class="btn-action" style="width: 100%; padding: 12px; background-color: #8e44ad;" onclick="saveExclusionsToGitHub()" disabled>
+        Сохранить новые слова на GitHub (0)
+      </button>
+    </div>
+    <h2>Незнакомые слова (<span id="words-count">0</span>)</h2>
+    <table class="word-list">
+      <thead>
+        <tr>
+          <th>Слово</th>
+          <th>Частота</th>
+          <th>Действие</th>
+        </tr>
+      </thead>
+      <tbody id="words-table-body">
+        <!-- Сюда будут вставляться строки -->
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
-    // --- ПЕРЕМЕННЫЕ (Спецификация ES5) ---
-    var exclusionsMap = {}; // Объединенная база известных слов (для быстрого поиска O(1))
-    var parsedBlocks = [];  // Распарсенный текст по таймкодам
-    var maxSeconds = 0;     // Общая длительность видео в секундах
-    var currentLimitSeconds = 0; // Текущий лимит времени по ползунку
+  // Хранилище данных приложения
+  var exclusionsMap = {};       // База уже известных слов с GitHub
+  var pendingAddedMap = {};     // Слова, отмеченные пользователем в этой сессии как "Знаю"
+  var currentFileSha = "";      // SHA текущей версии файла на GitHub
+  var parsedBlocks = [];        // Разобранные блоки транскрипта
+  var maxVideoDuration = 0;     // Общая длительность видео в секундах
 
-    // Базовый мини-список слов на случай, если exclusions.txt не загрузится
-    var fallbackExclusions = [
-        "the", "a", "an", "and", "of", "to", "in", "is", "you", "that", "it", "he", "was", "for", "on", 
-        "are", "as", "with", "his", "they", "i", "at", "be", "this", "have", "from", "or", "one", "had", 
-        "by", "word", "but", "not", "what", "all", "were", "we", "when", "your", "can", "said", "there", 
-        "use", "an", "each", "which", "she", "do", "how", "their", "if", "will", "up", "other", "about", 
-        "out", "many", "then", "them", "these", "so", "some", "her", "would", "make", "like", "him", "into"
-    ];
-
-    // Путь к файлу исключений в вашем репозитории
-    var exclusionsFileUrl = "./exclusions.txt";
-
-    // --- ИНИЦИАЛИЗАЦИЯ ПРИ ЗАПУСКЕ ---
-    window.onload = function() {
-        loadExclusions();
-        setupEventListeners();
-        updateCustomWordsStatus();
-    };
-
-    // --- ЗАГРУЗКА И СЛИЯНИЕ БАЗ ДАННЫХ ---
-    function loadExclusions() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", exclusionsFileUrl, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                var wordsArray = [];
-                
-                if (xhr.status === 200) {
-                    // Файл успешно загружен
-                    var text = xhr.responseText;
-                    wordsArray = text.split("\n");
-                    document.getElementById("dbStatus").innerHTML = "База с GitHub успешно загружена.";
-                } else {
-                    // Ошибка загрузки (например, файла еще нет) -> используем базовый список
-                    wordsArray = fallbackExclusions;
-                    document.getElementById("dbStatus").innerHTML = "Не удалось загрузитьexclusions.txt. Используется базовый словарь.";
-                }
-
-                // Строим карту исключений
-                buildExclusionsMap(wordsArray);
-                
-                // Активируем кнопку анализа
-                var btn = document.getElementById("btnProcess");
-                btn.removeAttribute("disabled");
-                btn.innerHTML = "Анализировать текст";
-            }
-        };
-        xhr.send();
+  // При запуске приложения загружаем настройки и скачиваем базу слов
+  window.onload = function() {
+    loadSettings();
+    if (getSetting('gh-token') && getSetting('gh-owner') && getSetting('gh-repo')) {
+      showStatus('Загрузка базы слов с GitHub...', 'info');
+      loadExclusionsFromGitHub();
+    } else {
+      showStatus('Пожалуйста, заполните настройки GitHub для начала работы.', 'error');
+      toggleSettings(true);
     }
+  };
 
-    function buildExclusionsMap(remoteWords) {
-        exclusionsMap = {};
-        var i;
-        // 1. Добавляем слова из удаленного файла (с очисткой от пробелов)
-        for (i = 0; i < remoteWords.length; i++) {
-            var word = remoteWords[i].trim().toLowerCase();
-            if (word) {
-                exclusionsMap[word] = true;
-            }
+  // Вспомогательная функция для AJAX запросов (совместимо с ES5)
+  function makeRequest(method, url, headers, data, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    if (headers) {
+      for (var key in headers) {
+        if (headers.hasOwnProperty(key)) {
+          xhr.setRequestHeader(key, headers[key]);
         }
-
-        // 2. Добавляем слова, помеченные пользователем как "знакомые" (из localStorage)
-        var custom = getCustomKnownWords();
-        for (i = 0; i < custom.length; i++) {
-            var customWord = custom[i].trim().toLowerCase();
-            if (customWord) {
-                exclusionsMap[customWord] = true;
-            }
-        }
+      }
     }
-
-    function getCustomKnownWords() {
-        try {
-            var stored = localStorage.getItem("custom_exclusions");
-            return stored ? JSON.parse(stored) : [];
-        } catch (e) {
-            return [];
-        }
-    }
-
-    function updateCustomWordsStatus() {
-        var count = getCustomKnownWords().length;
-        document.getElementById("customWordsCount").innerHTML = "Выучено вами слов: " + count;
-    }
-
-    // --- СЛУШАТЕЛИ СОБЫТИЙ ---
-    function setupEventListeners() {
-        var btn = document.getElementById("btnProcess");
-        var slider = document.getElementById("timeSlider");
-
-        btn.onclick = function() {
-            parseTranscript();
-        };
-
-        // Обработка движения ползунка
-        slider.oninput = function() {
-            currentLimitSeconds = parseInt(slider.value, 10);
-            document.getElementById("sliderLabel").innerHTML = "Анализировать видео до: " + formatSeconds(currentLimitSeconds);
-            runAnalysis(currentLimitSeconds);
-        };
-    }
-
-    // --- ПАРСИНГ ТРАНСКРИПТА (Поиск таймкодов) ---
-    function parseTranscript() {
-        var text = document.getElementById("transcriptInput").value;
-        if (!text.trim()) {
-            alert("Пожалуйста, вставьте текст транскрипта.");
-            return;
-        }
-
-        var lines = text.split("\n");
-        parsedBlocks = [];
-        var currentSeconds = 0;
-
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (!line) continue;
-
-            // Регулярное выражение для таймкода формата 0:00 или 12:34 или 1:02:03
-            var isTimestamp = /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(line);
-
-            if (isTimestamp) {
-                currentSeconds = parseTimeToSeconds(line);
-            } else {
-                parsedBlocks.push({
-                    time: currentSeconds,
-                    text: line
-                });
-            }
-        }
-
-        if (parsedBlocks.length === 0) {
-            alert("Не удалось распознать текст. Проверьте формат.");
-            return;
-        }
-
-        // Вычисляем максимальное время
-        maxSeconds = currentSeconds;
-        if (maxSeconds === 0 && parsedBlocks.length > 0) {
-            // Если таймкодов вообще не было, устанавливаем фиктивное время, чтобы ползунок не ломал логику
-            maxSeconds = 100;
-        }
-
-        // Показываем ползунок и настраиваем его
-        var sliderArea = document.getElementById("sliderArea");
-        sliderArea.className = "slider-container"; // убираем hidden
-        
-        var slider = document.getElementById("timeSlider");
-        slider.max = maxSeconds;
-        slider.value = maxSeconds; // по умолчанию анализируем весь текст
-
-        currentLimitSeconds = maxSeconds;
-        document.getElementById("sliderLabel").innerHTML = "Анализировать видео до: " + formatSeconds(maxSeconds);
-
-        // Запуск анализа
-        runAnalysis(maxSeconds);
-    }
-
-    // --- АНАЛИЗ И СОРТИРОВКА СЛОВ ---
-    function runAnalysis(limitSeconds) {
-        var wordCounts = {};
-
-        for (var i = 0; i < parsedBlocks.length; i++) {
-            var block = parsedBlocks[i];
-            
-            // Если блок идет позже, чем установлено на ползунке — пропускаем его
-            if (block.time > limitSeconds) {
-                continue;
-            }
-
-            // Очищаем текст блока от знаков препинания (для ES5/старых браузеров)
-            // Оставляем только английские буквы и апостроф (для слов типа don't, I've)
-            var cleanText = block.text.toLowerCase().replace(/[^a-z']/g, " ");
-            var words = cleanText.split(/\s+/);
-
-            for (var j = 0; j < words.length; j++) {
-                var word = words[j].trim();
-                
-                // Убираем одиночные апострофы по краям слова (например, 'hello' -> hello)
-                word = word.replace(/^'+|'+$/g, "");
-
-                if (word.length < 2) continue; // Пропускаем слишком короткие слова
-
-                // Если слова нет в списке исключений (базовом + локальном)
-                if (!exclusionsMap[word]) {
-                    if (wordCounts[word]) {
-                        wordCounts[word]++;
-                    } else {
-                        wordCounts[word] = 1;
-                    }
-                }
-            }
-        }
-
-        // Преобразуем объект в массив и сортируем по убыванию частоты
-        var sortedWords = [];
-        for (var key in wordCounts) {
-            if (wordCounts.hasOwnProperty(key)) {
-                sortedWords.push([key, wordCounts[key]]);
-            }
-        }
-
-        sortedWords.sort(function(a, b) {
-            return b[1] - a[1];
-        });
-
-        // Отрисовка таблицы
-        renderTable(sortedWords);
-    }
-
-    // --- ОТРИСОВКА РЕЗУЛЬТАТОВ ---
-    function renderTable(sortedWords) {
-        var resultsArea = document.getElementById("resultsArea");
-        var tbody = document.getElementById("resultsBody");
-        
-        tbody.innerHTML = ""; // Очищаем старые результаты
-
-        if (sortedWords.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Все слова вам знакомы!</td></tr>";
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          var response = xhr.responseText;
+          try {
+            response = JSON.parse(response);
+          } catch(e) {}
+          callback(null, response);
         } else {
-            for (var i = 0; i < sortedWords.length; i++) {
-                var item = sortedWords[i];
-                var word = item[0];
-                var count = item[1];
-
-                var tr = document.createElement("tr");
-                
-                var tdWord = document.createElement("td");
-                tdWord.innerHTML = word;
-                
-                var tdCount = document.createElement("td");
-                tdCount.innerHTML = count;
-                
-                var tdAction = document.createElement("td");
-                var btn = document.createElement("button");
-                btn.className = "btn-know";
-                btn.innerHTML = "Знаю";
-                // Передаем слово в функцию клика через замыкание
-                btn.onclick = (function(w) {
-                    return function() {
-                        addWordToKnown(w);
-                    };
-                })(word);
-
-                tdAction.appendChild(btn);
-                tr.appendChild(tdWord);
-                tr.appendChild(tdCount);
-                tr.appendChild(tdAction);
-                tbody.appendChild(tr);
-            }
+          callback(new Error('Код ошибки: ' + xhr.status), xhr.responseText);
         }
+      }
+    };
+    xhr.send(data ? JSON.stringify(data) : null);
+  }
 
-        resultsArea.className = ""; // Показываем блок результатов (убираем hidden)
+  // Безопасное кодирование и декодирование Base64 с поддержкой UTF-8
+  function base64ToUtf8(str) {
+    return decodeURIComponent(escape(window.atob(str.replace(/\s/g, ''))));
+  }
+  function utf8ToBase64(str) {
+    return window.btoa(unescape(encodeURIComponent(str)));
+  }
+
+  // Функции работы с настройками
+  function getSetting(id) {
+    return localStorage.getItem(id) || "";
+  }
+  function loadSettings() {
+    document.getElementById('gh-token').value = getSetting('gh-token');
+    document.getElementById('gh-owner').value = getSetting('gh-owner');
+    document.getElementById('gh-repo').value = getSetting('gh-repo');
+    var path = getSetting('gh-path');
+    if (path) {
+      document.getElementById('gh-path').value = path;
     }
+  }
+  function saveSettings() {
+    localStorage.setItem('gh-token', document.getElementById('gh-token').value.trim());
+    localStorage.setItem('gh-owner', document.getElementById('gh-owner').value.trim());
+    localStorage.setItem('gh-repo', document.getElementById('gh-repo').value.trim());
+    localStorage.setItem('gh-path', document.getElementById('gh-path').value.trim() || 'exclusions.txt');
+    
+    toggleSettings(false);
+    showStatus('Настройки сохранены. Инициализация соединения...', 'info');
+    loadExclusionsFromGitHub();
+  }
+  function toggleSettings(forceShow) {
+    var block = document.getElementById('settings-block');
+    if (forceShow || block.style.display !== 'block') {
+      block.style.display = 'block';
+    } else {
+      block.style.display = 'none';
+    }
+  }
 
-    // --- ДОБАВЛЕНИЕ СЛОВА В ВЫУЧЕННЫЕ (Локально) ---
-    window.addWordToKnown = function(word) {
-        // Добавляем в текущую рабочую карту программы
-        exclusionsMap[word] = true;
+  // Вывод уведомлений
+  function showStatus(text, type) {
+    var box = document.getElementById('status-box');
+    box.className = 'status ' + type;
+    box.innerHTML = text;
+  }
 
-        // Сохраняем в localStorage
-        var custom = getCustomKnownWords();
-        if (custom.indexOf(word) === -1) {
-            custom.push(word);
-            localStorage.setItem("custom_exclusions", JSON.stringify(custom));
-        }
+  // Загрузка списка известных слов из GitHub
+  function loadExclusionsFromGitHub() {
+    var token = getSetting('gh-token');
+    var owner = getSetting('gh-owner');
+    var repo = getSetting('gh-repo');
+    var path = getSetting('gh-path') || 'exclusions.txt';
 
-        updateCustomWordsStatus();
-
-        // Перезапускаем анализ, чтобы это слово пропало из таблицы в реальном времени
-        runAnalysis(currentLimitSeconds);
+    var url = 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + path;
+    var headers = {
+      'Authorization': 'token ' + token,
+      'Accept': 'application/vnd.github.v3+json'
     };
 
-    // --- СБРОС ЛОКАЛЬНОЙ БАЗЫ ВЫУЧЕННЫХ СЛОВ ---
-    window.clearCustomKnown = function() {
-        if (confirm("Вы уверены, что хотите сбросить все добавленные вами слова?")) {
-            localStorage.removeItem("custom_exclusions");
-            updateCustomWordsStatus();
-            
-            // Перестраиваем карту исключений заново (только с файлом с GitHub)
-            loadExclusions(); 
-            
-            // Если текст уже был загружен, пересчитаем результаты
-            if (parsedBlocks.length > 0) {
-                runAnalysis(currentLimitSeconds);
-            }
+    makeRequest('GET', url, headers, null, function(err, res) {
+      if (err) {
+        // Если файла нет (ошибка 404), предложим создать новый список
+        if (err.message.indexOf('404') !== -1) {
+          showStatus('Файл ' + path + ' не найден в репозитории. Он будет создан автоматически при первом сохранении слов.', 'info');
+          exclusionsMap = {};
+          currentFileSha = "";
+          document.getElementById('analyze-btn').removeAttribute('disabled');
+        } else {
+          showStatus('Не удалось подключиться к GitHub. Проверьте токен и настройки. ' + err.message, 'error');
         }
+        return;
+      }
+
+      currentFileSha = res.sha;
+      var fileContent = "";
+      if (res.content) {
+        fileContent = base64ToUtf8(res.content);
+      }
+
+      // Наполняем Map исключений
+      exclusionsMap = {};
+      var lines = fileContent.split('\n');
+      var loadedCount = 0;
+      for (var i = 0; i < lines.length; i++) {
+        var word = lines[i].trim().toLowerCase();
+        if (word) {
+          exclusionsMap[word] = true;
+          loadedCount++;
+        }
+      }
+
+      showStatus('База слов успешно загружена. Известных слов: ' + loadedCount, 'success');
+      document.getElementById('analyze-btn').removeAttribute('disabled');
+    });
+  }
+
+  // Разбор текста на таймкоды
+  function parseTranscript(rawText) {
+    var lines = rawText.split('\n');
+    var blocks = [];
+    var currentSeconds = 0;
+    var currentText = '';
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+
+      // Очистка от скобок в таймкодах, если они есть [0:08] -> 0:08
+      var cleanLine = line.replace(/[\[\]]/g, '');
+      
+      // Регулярное выражение для таймкодов типа 0:08, 12:35 или 1:02:15
+      var match = cleanLine.match(/^(?:(\d+):)?(\d+):(\d+)$/);
+
+      if (match) {
+        if (currentText.trim()) {
+          blocks.push({
+            seconds: currentSeconds,
+            text: currentText.trim()
+          });
+        }
+        var hrs = match[1] ? parseInt(match[1], 10) : 0;
+        var mins = parseInt(match[2], 10);
+        var secs = parseInt(match[3], 10);
+        currentSeconds = (hrs * 3600) + (mins * 60) + secs;
+        currentText = '';
+      } else {
+        currentText += ' ' + line;
+      }
+    }
+    
+    if (currentText.trim()) {
+      blocks.push({
+        seconds: currentSeconds,
+        text: currentText.trim()
+      });
+    }
+
+    return blocks;
+  }
+
+  // Форматирование секунд в формат минуты:секунды
+  function formatTime(totalSeconds) {
+    var hrs = Math.floor(totalSeconds / 3600);
+    var mins = Math.floor((totalSeconds % 3600) / 60);
+    var secs = totalSeconds % 60;
+    
+    var res = "";
+    if (hrs > 0) {
+      res += hrs + ":";
+      if (mins < 10) mins = "0" + mins;
+    }
+    res += mins + ":";
+    if (secs < 10) secs = "0" + secs;
+    res += secs;
+    return res;
+  }
+
+  // Нажатие кнопки «Анализировать»
+  function onAnalyze() {
+    var rawText = document.getElementById('transcript-input').value;
+    if (!rawText.trim()) {
+      alert('Пожалуйста, вставьте текст транскрипта.');
+      return;
+    }
+
+    parsedBlocks = parseTranscript(rawText);
+    
+    if (parsedBlocks.length === 0) {
+      alert('Не удалось распознать текст или таймкоды.');
+      return;
+    }
+
+    // Находим максимальное время видео
+    maxVideoDuration = parsedBlocks[parsedBlocks.length - 1].seconds;
+    
+    // Инициализируем ползунок
+    var slider = document.getElementById('time-slider');
+    slider.max = maxVideoDuration;
+    slider.value = maxVideoDuration; // по умолчанию анализируем весь текст
+
+    document.getElementById('interactive-panel').style.display = 'block';
+    document.getElementById('results-panel').style.display = 'block';
+    
+    onSliderChange(maxVideoDuration);
+  }
+
+  // Изменение положения ползунка
+  function onSliderChange(value) {
+    var targetSeconds = parseInt(value, 10);
+    document.getElementById('current-time-label').innerText = formatTime(targetSeconds) + " / " + formatTime(maxVideoDuration);
+    
+    // Собираем текст, попавший во временной отрезок
+    var combinedText = "";
+    for (var i = 0; i < parsedBlocks.length; i++) {
+      if (parsedBlocks[i].seconds <= targetSeconds) {
+        combinedText += " " + parsedBlocks[i].text;
+      }
+    }
+
+    analyzeAndRenderWords(combinedText);
+  }
+
+  // Очистка текста от мусора, подсчет частоты и фильтрация
+  function analyzeAndRenderWords(text) {
+    // Удаляем апострофы (чтобы I've превратилось в ive, it's в its), затем заменяем всё, кроме английских букв, пробелами
+    var cleanText = text.replace(/'/g, '').replace(/[^a-zA-Z]/g, ' ').toLowerCase();
+    var words = cleanText.split(/\s+/);
+    
+    var frequencies = {};
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i].trim();
+      if (!w || w.length <= 1) continue; // игнорируем пустые слова и одиночные буквы
+      
+      // Фильтруем по загруженным базам исключений и текущим отмеченным словам
+      if (exclusionsMap[w] || pendingAddedMap[w]) {
+        continue;
+      }
+
+      if (!frequencies[w]) {
+        frequencies[w] = 0;
+      }
+      frequencies[w]++;
+    }
+
+    // Переводим объект в массив и сортируем по убыванию частоты
+    var sortedWords = [];
+    for (var key in frequencies) {
+      if (frequencies.hasOwnProperty(key)) {
+        sortedWords.push([key, frequencies[key]]);
+      }
+    }
+    sortedWords.sort(function(a, b) {
+      return b[1] - a[1];
+    });
+
+    renderTable(sortedWords);
+  }
+
+  // Отрисовка таблицы результатов
+  function renderTable(wordPairs) {
+    var tbody = document.getElementById('words-table-body');
+    tbody.innerHTML = "";
+    
+    document.getElementById('words-count').innerText = wordPairs.length;
+
+    for (var i = 0; i < wordPairs.length; i++) {
+      var word = wordPairs[i][0];
+      var count = wordPairs[i][1];
+
+      var tr = document.createElement('tr');
+      
+      var tdWord = document.createElement('td');
+      tdWord.innerText = word;
+      
+      var tdCount = document.createElement('td');
+      tdCount.innerText = count;
+
+      var tdAction = document.createElement('td');
+      var btn = document.createElement('button');
+      btn.className = "btn-action";
+      btn.innerText = "Знаю";
+      // Используем замыкание для передачи текущего слова в функцию
+      btn.onclick = (function(w) {
+        return function() {
+          markAsKnown(w);
+        };
+      })(word);
+
+      tdAction.appendChild(btn);
+      tr.appendChild(tdWord);
+      tr.appendChild(tdCount);
+      tr.appendChild(tdAction);
+      tbody.appendChild(tr);
+    }
+  }
+
+  // Клик по кнопке «Знаю» у конкретного слова
+  function markAsKnown(word) {
+    pendingAddedMap[word] = true;
+    
+    // Обновляем счетчик на фиолетовой кнопке сохранения на GitHub
+    var pendingCount = 0;
+    for (var k in pendingAddedMap) {
+      if (pendingAddedMap.hasOwnProperty(k)) pendingCount++;
+    }
+    
+    var saveBtn = document.getElementById('save-to-git-btn');
+    saveBtn.innerText = "Сохранить новые слова на GitHub (" + pendingCount + ")";
+    if (pendingCount > 0) {
+      saveBtn.removeAttribute('disabled');
+    } else {
+      saveBtn.setAttribute('disabled', 'disabled');
+    }
+
+    // Запускаем перерасчет и перерисовку текущего состояния (слово моментально исчезнет из результатов)
+    onSliderChange(document.getElementById('time-slider').value);
+  }
+
+  // Сохранение накопившихся известных слов в репозиторий на GitHub
+  function saveExclusionsToGitHub() {
+    var token = getSetting('gh-token');
+    var owner = getSetting('gh-owner');
+    var repo = getSetting('gh-repo');
+    var path = getSetting('gh-path') || 'exclusions.txt';
+
+    if (!token || !owner || !repo) {
+      alert("Пожалуйста, заполните настройки GitHub.");
+      return;
+    }
+
+    showStatus("Обновление файла на GitHub...", "info");
+    document.getElementById('save-to-git-btn').setAttribute('disabled', 'disabled');
+
+    // Объединяем старый список и новые добавленные слова
+    var finalExclusionsList = [];
+    for (var w in exclusionsMap) {
+      if (exclusionsMap.hasOwnProperty(w)) finalExclusionsList.push(w);
+    }
+    for (var p in pendingAddedMap) {
+      if (pendingAddedMap.hasOwnProperty(p)) finalExclusionsList.push(p);
+    }
+
+    // Сортируем список по алфавиту для красоты
+    finalExclusionsList.sort();
+
+    // Собираем текст для файла
+    var newFileContent = finalExclusionsList.join('\n');
+    var base64Content = utf8ToBase64(newFileContent);
+
+    var url = 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + path;
+    var headers = {
+      'Authorization': 'token ' + token,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json'
     };
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (ES5) ---
-    function parseTimeToSeconds(timeStr) {
-        var parts = timeStr.split(":");
-        var secs = 0;
-        if (parts.length === 3) {
-            secs += parseInt(parts[0], 10) * 3600;
-            secs += parseInt(parts[1], 10) * 60;
-            secs += parseInt(parts[2], 10);
-        } else if (parts.length === 2) {
-            secs += parseInt(parts[0], 10) * 60;
-            secs += parseInt(parts[1], 10);
-        }
-        return secs;
+    var body = {
+      "message": "Update exclusions list: added new known words",
+      "content": base64Content
+    };
+    // Если файл уже существовал, обязательно передаем его SHA
+    if (currentFileSha) {
+      body.sha = currentFileSha;
     }
 
-    function formatSeconds(secs) {
-        var h = Math.floor(secs / 3600);
-        var m = Math.floor((secs % 3600) / 60);
-        var s = secs % 60;
-        var result = "";
-        if (h > 0) {
-            result += h + ":";
+    makeRequest('PUT', url, headers, body, function(err, res) {
+      if (err) {
+        showStatus("Ошибка при сохранении на GitHub: " + err.message, "error");
+        document.getElementById('save-to-git-btn').removeAttribute('disabled');
+        return;
+      }
+
+      // После успешного сохранения перезаписываем локальную память
+      for (var p in pendingAddedMap) {
+        if (pendingAddedMap.hasOwnProperty(p)) {
+          exclusionsMap[p] = true;
         }
-        result += (m < 10 && h > 0 ? "0" : "") + m + ":";
-        result += (s < 10 ? "0" : "") + s;
-        return result;
-    }
+      }
+      pendingAddedMap = {}; // очищаем список отложенных слов
+
+      currentFileSha = res.content.sha; // обновляем SHA файла для последующих сохранений
+
+      // Обнуляем кнопку отправки
+      var saveBtn = document.getElementById('save-to-git-btn');
+      saveBtn.innerText = "Сохранить новые слова на GitHub (0)";
+      saveBtn.setAttribute('disabled', 'disabled');
+
+      showStatus("База слов успешно синхронизирована с репозиторием GitHub!", "success");
+    });
+  }
 </script>
+
 </body>
 </html>
