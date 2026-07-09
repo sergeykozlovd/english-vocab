@@ -3,62 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Vocab Analyzer</title>
+    <title>Анализатор транскриптов</title>
     <style>
-        /* Простые стили, совместимые со старыми браузерами Android 4.4 */
+        /* Базовые стили, совместимые со старыми браузерами */
         body {
-            font-family: sans-serif;
-            margin: 10px;
-            padding: 0;
-            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f4f4f9;
             color: #333;
         }
         h1, h2 {
-            text-align: center;
             color: #2c3e50;
+            margin-top: 0;
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             background: #fff;
-            padding: 15px;
+            padding: 20px;
             border-radius: 5px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .section {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        input[type="text"], input[type="password"], textarea {
+        textarea {
             width: 100%;
-            padding: 8px;
-            margin-top: 5px;
+            height: 150px;
+            box-sizing: border-box;
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box;
+            font-family: monospace;
             font-size: 14px;
-        }
-        textarea {
-            height: 120px;
             resize: vertical;
         }
+        .control-panel {
+            margin: 20px 0;
+            padding: 15px;
+            background: #eef2f7;
+            border-radius: 4px;
+        }
         button {
-            width: 100%;
-            padding: 10px;
             background-color: #3498db;
             color: white;
             border: none;
+            padding: 10px 15px;
+            font-size: 14px;
             border-radius: 4px;
-            font-size: 16px;
             cursor: pointer;
-            margin-top: 10px;
         }
         button:hover {
             background-color: #2980b9;
@@ -69,452 +60,416 @@
         }
         .slider-container {
             margin-top: 15px;
-            text-align: center;
+        }
+        .slider-container label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
         input[type="range"] {
             width: 100%;
-            margin-top: 10px;
+            margin: 10px 0;
         }
         .status {
             font-size: 12px;
             color: #7f8c8d;
             margin-top: 5px;
-            text-align: center;
         }
+        /* Стили таблицы результатов */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 20px;
         }
         th, td {
             text-align: left;
-            padding: 8px;
+            padding: 10px;
             border-bottom: 1px solid #ddd;
         }
         th {
             background-color: #f2f2f2;
         }
-        .exclude-btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
+        .btn-know {
+            background-color: #2ecc71;
             padding: 5px 10px;
-            border-radius: 3px;
             font-size: 12px;
-            cursor: pointer;
-            width: auto;
-            margin: 0;
         }
-        .exclude-btn:hover {
+        .btn-know:hover {
+            background-color: #27ae60;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .btn-danger:hover {
             background-color: #c0392b;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Vocab Analyzer</h1>
-
-    <!-- Блок настроек GitHub -->
-    <div class="section">
-        <h2>Настройки GitHub API</h2>
-        <label>Имя пользователя GitHub:</label>
-        <input type="text" id="gitUser" placeholder="например, ivan-ivanov">
+    <h1>Анализ английских слов в видео</h1>
+    
+    <p>Вставьте транскрипт с таймкодами (например, скопированный с YouTube) в поле ниже:</p>
+    <textarea id="transcriptInput" placeholder="Вставьте текст сюда...&#10;Например:&#10;0:00&#10;hi everyone&#10;0:08&#10;large language models..."></textarea>
+    
+    <div class="control-panel">
+        <button id="btnProcess" disabled>Загрузка базы слов...</button>
+        <span id="dbStatus" class="status">Загрузка файла исключений...</span>
         
-        <label>Имя репозитория:</label>
-        <input type="text" id="gitRepo" placeholder="например, english-vocab">
-        
-        <label>Путь к файлу в репозитории:</label>
-        <input type="text" id="gitPath" value="exclusions.txt">
-        
-        <label>GitHub Personal Access Token:</label>
-        <input type="password" id="gitToken" placeholder="ghp_xxxxxxxxxxxx">
-        
-        <button id="saveSettingsBtn" onclick="saveSettings()">Сохранить настройки</button>
-        <div class="status" id="dbStatus">Статус: база слов не загружена</div>
-    </div>
-
-    <!-- Блок ввода текста -->
-    <div class="section">
-        <h2>Анализ текста</h2>
-        <textarea id="inputText" placeholder="Вставьте транскрипт видео с таймкодами (например, 0:08) сюда..."></textarea>
-        <button id="processBtn" onclick="processText()" disabled>Разобрать текст</button>
-    </div>
-
-    <!-- Интерактивный ползунок времени -->
-    <div class="section" id="sliderBlock" style="display: none;">
-        <h2>Интерактивный фильтр времени</h2>
-        <div class="slider-container">
-            <span id="currentTimeLabel">Время: 0:00</span>
-            <input type="range" id="timeSlider" min="0" max="100" value="0" oninput="onSliderChange(this.value)">
+        <div id="sliderArea" class="slider-container hidden">
+            <label id="sliderLabel">Анализировать видео до: 0:00</label>
+            <input type="range" id="timeSlider" min="0" max="100" value="0">
         </div>
     </div>
 
-    <!-- Результаты -->
-    <div class="section">
-        <h2>Незнакомые слова</h2>
+    <div id="resultsArea" class="hidden">
+        <h2>Незнакомые слова (по частоте):</h2>
+        <div style="margin-bottom: 10px;">
+            <button class="btn-danger" onclick="clearCustomKnown()">Сбросить выученные слова</button>
+            <span id="customWordsCount" class="status"></span>
+        </div>
         <table id="resultsTable">
             <thead>
                 <tr>
                     <th>Слово</th>
-                    <th>Частота</th>
+                    <th>Встретилось раз</th>
                     <th>Действие</th>
                 </tr>
             </thead>
             <tbody id="resultsBody">
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #7f8c8d;">Здесь будет статистика</td>
-                </tr>
+                <!-- Сюда JS добавит строки -->
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // Глобальные переменные (совместимый синтаксис ES5)
-    var githubUser = '';
-    var githubRepo = '';
-    var githubPath = 'exclusions.txt';
-    var githubToken = '';
-    
-    var currentFileSha = ''; // SHA текущей версии файла для записи на GitHub
-    var exclusionsList = []; // Массив слов-исключений
-    var exclusionsMap = {};  // Хэш-таблица для быстрого O(1) поиска
+    // --- ПЕРЕМЕННЫЕ (Спецификация ES5) ---
+    var exclusionsMap = {}; // Объединенная база известных слов (для быстрого поиска O(1))
+    var parsedBlocks = [];  // Распарсенный текст по таймкодам
+    var maxSeconds = 0;     // Общая длительность видео в секундах
+    var currentLimitSeconds = 0; // Текущий лимит времени по ползунку
 
-    var parsedSegments = []; // Разобранный текст по таймкодам
-    var maxVideoDuration = 0; // Длительность видео в секундах
+    // Базовый мини-список слов на случай, если exclusions.txt не загрузится
+    var fallbackExclusions = [
+        "the", "a", "an", "and", "of", "to", "in", "is", "you", "that", "it", "he", "was", "for", "on", 
+        "are", "as", "with", "his", "they", "i", "at", "be", "this", "have", "from", "or", "one", "had", 
+        "by", "word", "but", "not", "what", "all", "were", "we", "when", "your", "can", "said", "there", 
+        "use", "an", "each", "which", "she", "do", "how", "their", "if", "will", "up", "other", "about", 
+        "out", "many", "then", "them", "these", "so", "some", "her", "would", "make", "like", "him", "into"
+    ];
 
-    // Инициализация при загрузке страницы
+    // Путь к файлу исключений в вашем репозитории
+    var exclusionsFileUrl = "./exclusions.txt";
+
+    // --- ИНИЦИАЛИЗАЦИЯ ПРИ ЗАПУСКЕ ---
     window.onload = function() {
-        loadSettingsFromStorage();
-        if (githubUser && githubRepo && githubToken) {
-            fetchExclusions();
-        }
+        loadExclusions();
+        setupEventListeners();
+        updateCustomWordsStatus();
     };
 
-    // Загрузка настроек из localStorage
-    function loadSettingsFromStorage() {
-        githubUser = localStorage.getItem('vocab_gitUser') || '';
-        githubRepo = localStorage.getItem('vocab_gitRepo') || '';
-        githubPath = localStorage.getItem('vocab_gitPath') || 'exclusions.txt';
-        githubToken = localStorage.getItem('vocab_gitToken') || '';
-
-        document.getElementById('gitUser').value = githubUser;
-        document.getElementById('gitRepo').value = githubRepo;
-        document.getElementById('gitPath').value = githubPath;
-        document.getElementById('gitToken').value = githubToken;
-    }
-
-    // Сохранение настроек в localStorage
-    function saveSettings() {
-        githubUser = document.getElementById('gitUser').value.trim();
-        githubRepo = document.getElementById('gitRepo').value.trim();
-        githubPath = document.getElementById('gitPath').value.trim() || 'exclusions.txt';
-        githubToken = document.getElementById('gitToken').value.trim();
-
-        localStorage.setItem('vocab_gitUser', githubUser);
-        localStorage.setItem('vocab_gitRepo', githubRepo);
-        localStorage.setItem('vocab_gitPath', githubPath);
-        localStorage.setItem('vocab_gitToken', githubToken);
-
-        alert('Настройки сохранены! Начинаем загрузку базы слов...');
-        fetchExclusions();
-    }
-
-    // Получение файла исключений с GitHub через API
-    function fetchExclusions() {
-        var statusDiv = document.getElementById('dbStatus');
-        statusDiv.innerHTML = 'Загрузка базы слов с GitHub...';
-
-        var url = 'https://api.github.com/repos/' + githubUser + '/' + githubRepo + '/contents/' + githubPath;
-        
+    // --- ЗАГРУЗКА И СЛИЯНИЕ БАЗ ДАННЫХ ---
+    function loadExclusions() {
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.setRequestHeader('Authorization', 'token ' + githubToken);
-        xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
-
+        xhr.open("GET", exclusionsFileUrl, true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
+                var wordsArray = [];
+                
                 if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    currentFileSha = response.sha; // Сохраняем SHA для будущих обновлений [2.1]
-                    
-                    // Безопасное декодирование Base64 с поддержкой UTF-8 в старых браузерах [3.3]
-                    var utf8Content = decodeURIComponent(escape(atob(response.content.replace(/\s/g, ''))));
-                    
-                    parseExclusionsText(utf8Content);
-                    statusDiv.innerHTML = 'Успешно загружено слов: ' + exclusionsList.length;
-                    document.getElementById('processBtn').disabled = false;
-                } else if (xhr.status === 404) {
-                    statusDiv.innerHTML = 'Файл не найден. Попробуем создать новый при первой отправке.';
-                    currentFileSha = '';
-                    exclusionsList = [];
-                    exclusionsMap = {};
-                    document.getElementById('processBtn').disabled = false;
+                    // Файл успешно загружен
+                    var text = xhr.responseText;
+                    wordsArray = text.split("\n");
+                    document.getElementById("dbStatus").innerHTML = "База с GitHub успешно загружена.";
                 } else {
-                    statusDiv.innerHTML = 'Ошибка загрузки: ' + xhr.status + ' (' + xhr.statusText + ')';
+                    // Ошибка загрузки (например, файла еще нет) -> используем базовый список
+                    wordsArray = fallbackExclusions;
+                    document.getElementById("dbStatus").innerHTML = "Не удалось загрузитьexclusions.txt. Используется базовый словарь.";
                 }
+
+                // Строим карту исключений
+                buildExclusionsMap(wordsArray);
+                
+                // Активируем кнопку анализа
+                var btn = document.getElementById("btnProcess");
+                btn.removeAttribute("disabled");
+                btn.innerHTML = "Анализировать текст";
             }
         };
         xhr.send();
     }
 
-    // Разбор текстового содержимого файла исключений
-    function parseExclusionsText(text) {
-        exclusionsList = [];
+    function buildExclusionsMap(remoteWords) {
         exclusionsMap = {};
-        var lines = text.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            var word = lines[i].trim().toLowerCase();
+        var i;
+        // 1. Добавляем слова из удаленного файла (с очисткой от пробелов)
+        for (i = 0; i < remoteWords.length; i++) {
+            var word = remoteWords[i].trim().toLowerCase();
             if (word) {
-                exclusionsList.push(word);
                 exclusionsMap[word] = true;
             }
         }
-    }
 
-    // Сохранение (отправка) обновленной базы слов обратно на GitHub [2.1]
-    function updateExclusionsOnGitHub(newWord, buttonElement) {
-        buttonElement.disabled = true;
-        buttonElement.innerHTML = 'Сохранение...';
-
-        // Добавляем новое слово в локальные структуры
-        var wordToSave = newWord.trim().toLowerCase();
-        if (wordToSave && !exclusionsMap[wordToSave]) {
-            exclusionsList.push(wordToSave);
-            exclusionsMap[wordToSave] = true;
-        }
-
-        // Собираем обратно в текстовую строку
-        var newContentText = exclusionsList.join('\n');
-        
-        // Кодируем в Base64 с поддержкой UTF-8 [3.3]
-        var base64Content = btoa(unescape(encodeURIComponent(newContentText)));
-
-        var url = 'https://api.github.com/repos/' + githubUser + '/' + githubRepo + '/contents/' + githubPath;
-        
-        var body = {
-            message: 'Add word: ' + wordToSave,
-            content: base64Content
-        };
-        if (currentFileSha) {
-            body.sha = currentFileSha; // SHA обязателен для обновления существующего файла [2.1]
-        }
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('PUT', url, true);
-        xhr.setRequestHeader('Authorization', 'token ' + githubToken);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200 || xhr.status === 201) {
-                    var response = JSON.parse(xhr.responseText);
-                    currentFileSha = response.content.sha; // Обновляем SHA для последующих записей [2.1]
-                    document.getElementById('dbStatus').innerHTML = 'Успешно загружено слов: ' + exclusionsList.length;
-                    
-                    // Удаляем строку из таблицы результатов на экране
-                    var row = buttonElement.parentNode.parentNode;
-                    row.parentNode.removeChild(row);
-                } else {
-                    alert('Ошибка сохранения на GitHub: ' + xhr.statusText);
-                    buttonElement.disabled = false;
-                    buttonElement.innerHTML = 'Я знаю';
-                }
+        // 2. Добавляем слова, помеченные пользователем как "знакомые" (из localStorage)
+        var custom = getCustomKnownWords();
+        for (i = 0; i < custom.length; i++) {
+            var customWord = custom[i].trim().toLowerCase();
+            if (customWord) {
+                exclusionsMap[customWord] = true;
             }
-        };
-        xhr.send(JSON.stringify(body));
+        }
     }
 
-    // Разбор входного транскрипта с таймкодами
-    function processText() {
-        var rawText = document.getElementById('inputText').value;
-        if (!rawText.trim()) {
-            alert('Пожалуйста, вставьте текст для анализа.');
+    function getCustomKnownWords() {
+        try {
+            var stored = localStorage.getItem("custom_exclusions");
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function updateCustomWordsStatus() {
+        var count = getCustomKnownWords().length;
+        document.getElementById("customWordsCount").innerHTML = "Выучено вами слов: " + count;
+    }
+
+    // --- СЛУШАТЕЛИ СОБЫТИЙ ---
+    function setupEventListeners() {
+        var btn = document.getElementById("btnProcess");
+        var slider = document.getElementById("timeSlider");
+
+        btn.onclick = function() {
+            parseTranscript();
+        };
+
+        // Обработка движения ползунка
+        slider.oninput = function() {
+            currentLimitSeconds = parseInt(slider.value, 10);
+            document.getElementById("sliderLabel").innerHTML = "Анализировать видео до: " + formatSeconds(currentLimitSeconds);
+            runAnalysis(currentLimitSeconds);
+        };
+    }
+
+    // --- ПАРСИНГ ТРАНСКРИПТА (Поиск таймкодов) ---
+    function parseTranscript() {
+        var text = document.getElementById("transcriptInput").value;
+        if (!text.trim()) {
+            alert("Пожалуйста, вставьте текст транскрипта.");
             return;
         }
 
-        parsedSegments = [];
-        maxVideoDuration = 0;
-
-        var lines = rawText.split('\n');
-        var currentTime = 0;
-        var currentTextAccumulator = '';
-
-        // Регулярное выражение для поиска таймкодов вида "0:00", "12:34", "1:02:03"
-        var timeRegex = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+        var lines = text.split("\n");
+        parsedBlocks = [];
+        var currentSeconds = 0;
 
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
             if (!line) continue;
 
-            var match = line.match(timeRegex);
-            if (match) {
-                // Если у нас уже накопился текст от предыдущего таймкода, сохраняем его
-                if (currentTextAccumulator.trim()) {
-                    parsedSegments.push({
-                        time: currentTime,
-                        text: currentTextAccumulator
-                    });
-                    currentTextAccumulator = '';
-                }
+            // Регулярное выражение для таймкода формата 0:00 или 12:34 или 1:02:03
+            var isTimestamp = /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(line);
 
-                // Вычисляем время в секундах
-                var p1 = parseInt(match[1], 10);
-                var p2 = parseInt(match[2], 10);
-                var p3 = match[3] ? parseInt(match[3], 10) : null;
-
-                if (p3 !== null) {
-                    currentTime = (p1 * 3600) + (p2 * 60) + p3;
-                } else {
-                    currentTime = (p1 * 60) + p2;
-                }
-
-                if (currentTime > maxVideoDuration) {
-                    maxVideoDuration = currentTime;
-                }
+            if (isTimestamp) {
+                currentSeconds = parseTimeToSeconds(line);
             } else {
-                currentTextAccumulator += ' ' + line;
+                parsedBlocks.push({
+                    time: currentSeconds,
+                    text: line
+                });
             }
         }
 
-        // Сохраняем последний оставшийся сегмент
-        if (currentTextAccumulator.trim()) {
-            parsedSegments.push({
-                time: currentTime,
-                text: currentTextAccumulator
-            });
-        }
-
-        // Инициализируем ползунок
-        initSlider();
-    }
-
-    // Настройка и показ ползунка
-    function initSlider() {
-        var sliderBlock = document.getElementById('sliderBlock');
-        var slider = document.getElementById('timeSlider');
-        
-        sliderBlock.style.display = 'block';
-        slider.max = maxVideoDuration;
-        slider.value = maxVideoDuration; // По умолчанию анализируем весь текст
-
-        onSliderChange(maxVideoDuration);
-    }
-
-    // Обработка движения ползунка
-    function onSliderChange(value) {
-        var seconds = parseInt(value, 10);
-        document.getElementById('currentTimeLabel').innerHTML = 'Время: ' + formatTime(seconds);
-        
-        analyzeSegmentsUpTo(seconds);
-    }
-
-    // Вспомогательная функция форматирования времени (секунды -> мин:сек)
-    function formatTime(totalSeconds) {
-        var hrs = Math.floor(totalSeconds / 3600);
-        var mins = Math.floor((totalSeconds % 3600) / 60);
-        var secs = totalSeconds % 60;
-
-        var result = '';
-        if (hrs > 0) {
-            result += hrs + ':';
-            if (mins < 10) mins = '0' + mins;
-        }
-        result += mins + ':';
-        if (secs < 10) secs = '0' + secs;
-        result += secs;
-
-        return result;
-    }
-
-    // Анализ накопленного текста до выбранной секунды
-    function analyzeSegmentsUpTo(limitSeconds) {
-        var combinedText = '';
-        for (var i = 0; i < parsedSegments.length; i++) {
-            if (parsedSegments[i].time <= limitSeconds) {
-                combinedText += ' ' + parsedSegments[i].text;
-            }
-        }
-
-        // Очищаем и нормализуем текст (только английские буквы и пробелы)
-        var cleanedText = combinedText.toLowerCase().replace(/[^a-z\s']/g, ' ');
-        var words = cleanedText.split(/\s+/);
-
-        var stats = {};
-        for (var j = 0; j < words.length; j++) {
-            var word = words[j].replace(/^'+|'+$/g, ''); // Удаляем апострофы по краям слова
-            if (word.length < 2) continue; // Игнорируем однобуквенные слова (a, i)
-
-            // Если слова нет в базе исключений — считаем частоту
-            if (!(word in exclusionsMap)) {
-                if (stats[word]) {
-                    stats[word]++;
-                } else {
-                    stats[word] = 1;
-                }
-            }
-        }
-
-        // Превращаем объект в массив для сортировки
-        var sortedStats = [];
-        for (var key in stats) {
-            if (stats.hasOwnProperty(key)) {
-                sortedStats.push([key, stats[key]]);
-            }
-        }
-
-        // Сортировка по убыванию частоты
-        sortedStats.sort(function(a, b) {
-            return b[1] - a[1];
-        });
-
-        renderResults(sortedStats);
-    }
-
-    // Вывод результатов на страницу
-    function renderResults(data) {
-        var tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = '';
-
-        if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #7f8c8d;">Все слова вам знакомы!</td></tr>';
+        if (parsedBlocks.length === 0) {
+            alert("Не удалось распознать текст. Проверьте формат.");
             return;
         }
 
-        for (var i = 0; i < data.length; i++) {
-            var word = data[i][0];
-            var count = data[i][1];
-
-            var tr = document.createElement('tr');
-            
-            var tdWord = document.createElement('td');
-            tdWord.innerHTML = '<strong>' + word + '</strong>';
-            
-            var tdCount = document.createElement('td');
-            tdCount.innerHTML = count;
-            
-            var tdAction = document.createElement('td');
-            var btn = document.createElement('button');
-            btn.className = 'exclude-btn';
-            btn.innerHTML = 'Я знаю';
-            // Используем замыкание для передачи параметров в обработчик события ES5
-            btn.onclick = (function(w, b) {
-                return function() {
-                    updateExclusionsOnGitHub(w, b);
-                };
-            })(word, btn);
-
-            tdAction.appendChild(btn);
-
-            tr.appendChild(tdWord);
-            tr.appendChild(tdCount);
-            tr.appendChild(tdAction);
-
-            tbody.appendChild(tr);
+        // Вычисляем максимальное время
+        maxSeconds = currentSeconds;
+        if (maxSeconds === 0 && parsedBlocks.length > 0) {
+            // Если таймкодов вообще не было, устанавливаем фиктивное время, чтобы ползунок не ломал логику
+            maxSeconds = 100;
         }
+
+        // Показываем ползунок и настраиваем его
+        var sliderArea = document.getElementById("sliderArea");
+        sliderArea.className = "slider-container"; // убираем hidden
+        
+        var slider = document.getElementById("timeSlider");
+        slider.max = maxSeconds;
+        slider.value = maxSeconds; // по умолчанию анализируем весь текст
+
+        currentLimitSeconds = maxSeconds;
+        document.getElementById("sliderLabel").innerHTML = "Анализировать видео до: " + formatSeconds(maxSeconds);
+
+        // Запуск анализа
+        runAnalysis(maxSeconds);
+    }
+
+    // --- АНАЛИЗ И СОРТИРОВКА СЛОВ ---
+    function runAnalysis(limitSeconds) {
+        var wordCounts = {};
+
+        for (var i = 0; i < parsedBlocks.length; i++) {
+            var block = parsedBlocks[i];
+            
+            // Если блок идет позже, чем установлено на ползунке — пропускаем его
+            if (block.time > limitSeconds) {
+                continue;
+            }
+
+            // Очищаем текст блока от знаков препинания (для ES5/старых браузеров)
+            // Оставляем только английские буквы и апостроф (для слов типа don't, I've)
+            var cleanText = block.text.toLowerCase().replace(/[^a-z']/g, " ");
+            var words = cleanText.split(/\s+/);
+
+            for (var j = 0; j < words.length; j++) {
+                var word = words[j].trim();
+                
+                // Убираем одиночные апострофы по краям слова (например, 'hello' -> hello)
+                word = word.replace(/^'+|'+$/g, "");
+
+                if (word.length < 2) continue; // Пропускаем слишком короткие слова
+
+                // Если слова нет в списке исключений (базовом + локальном)
+                if (!exclusionsMap[word]) {
+                    if (wordCounts[word]) {
+                        wordCounts[word]++;
+                    } else {
+                        wordCounts[word] = 1;
+                    }
+                }
+            }
+        }
+
+        // Преобразуем объект в массив и сортируем по убыванию частоты
+        var sortedWords = [];
+        for (var key in wordCounts) {
+            if (wordCounts.hasOwnProperty(key)) {
+                sortedWords.push([key, wordCounts[key]]);
+            }
+        }
+
+        sortedWords.sort(function(a, b) {
+            return b[1] - a[1];
+        });
+
+        // Отрисовка таблицы
+        renderTable(sortedWords);
+    }
+
+    // --- ОТРИСОВКА РЕЗУЛЬТАТОВ ---
+    function renderTable(sortedWords) {
+        var resultsArea = document.getElementById("resultsArea");
+        var tbody = document.getElementById("resultsBody");
+        
+        tbody.innerHTML = ""; // Очищаем старые результаты
+
+        if (sortedWords.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Все слова вам знакомы!</td></tr>";
+        } else {
+            for (var i = 0; i < sortedWords.length; i++) {
+                var item = sortedWords[i];
+                var word = item[0];
+                var count = item[1];
+
+                var tr = document.createElement("tr");
+                
+                var tdWord = document.createElement("td");
+                tdWord.innerHTML = word;
+                
+                var tdCount = document.createElement("td");
+                tdCount.innerHTML = count;
+                
+                var tdAction = document.createElement("td");
+                var btn = document.createElement("button");
+                btn.className = "btn-know";
+                btn.innerHTML = "Знаю";
+                // Передаем слово в функцию клика через замыкание
+                btn.onclick = (function(w) {
+                    return function() {
+                        addWordToKnown(w);
+                    };
+                })(word);
+
+                tdAction.appendChild(btn);
+                tr.appendChild(tdWord);
+                tr.appendChild(tdCount);
+                tr.appendChild(tdAction);
+                tbody.appendChild(tr);
+            }
+        }
+
+        resultsArea.className = ""; // Показываем блок результатов (убираем hidden)
+    }
+
+    // --- ДОБАВЛЕНИЕ СЛОВА В ВЫУЧЕННЫЕ (Локально) ---
+    window.addWordToKnown = function(word) {
+        // Добавляем в текущую рабочую карту программы
+        exclusionsMap[word] = true;
+
+        // Сохраняем в localStorage
+        var custom = getCustomKnownWords();
+        if (custom.indexOf(word) === -1) {
+            custom.push(word);
+            localStorage.setItem("custom_exclusions", JSON.stringify(custom));
+        }
+
+        updateCustomWordsStatus();
+
+        // Перезапускаем анализ, чтобы это слово пропало из таблицы в реальном времени
+        runAnalysis(currentLimitSeconds);
+    };
+
+    // --- СБРОС ЛОКАЛЬНОЙ БАЗЫ ВЫУЧЕННЫХ СЛОВ ---
+    window.clearCustomKnown = function() {
+        if (confirm("Вы уверены, что хотите сбросить все добавленные вами слова?")) {
+            localStorage.removeItem("custom_exclusions");
+            updateCustomWordsStatus();
+            
+            // Перестраиваем карту исключений заново (только с файлом с GitHub)
+            loadExclusions(); 
+            
+            // Если текст уже был загружен, пересчитаем результаты
+            if (parsedBlocks.length > 0) {
+                runAnalysis(currentLimitSeconds);
+            }
+        }
+    };
+
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (ES5) ---
+    function parseTimeToSeconds(timeStr) {
+        var parts = timeStr.split(":");
+        var secs = 0;
+        if (parts.length === 3) {
+            secs += parseInt(parts[0], 10) * 3600;
+            secs += parseInt(parts[1], 10) * 60;
+            secs += parseInt(parts[2], 10);
+        } else if (parts.length === 2) {
+            secs += parseInt(parts[0], 10) * 60;
+            secs += parseInt(parts[1], 10);
+        }
+        return secs;
+    }
+
+    function formatSeconds(secs) {
+        var h = Math.floor(secs / 3600);
+        var m = Math.floor((secs % 3600) / 60);
+        var s = secs % 60;
+        var result = "";
+        if (h > 0) {
+            result += h + ":";
+        }
+        result += (m < 10 && h > 0 ? "0" : "") + m + ":";
+        result += (s < 10 ? "0" : "") + s;
+        return result;
     }
 </script>
-
 </body>
 </html>
